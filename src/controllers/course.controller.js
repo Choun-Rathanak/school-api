@@ -48,6 +48,10 @@ export const createCourse = async (req, res) => {
  *     tags: [Courses]
  *     parameters:
  *       - in: query
+ *         name: include
+ *         schema: { type: string, default: '' }
+ *         description: Join with another table (Teacher, Student)
+ *       - in: query
  *         name: page
  *         schema: { type: integer, default: 1 }
  *         description: Page number
@@ -55,30 +59,44 @@ export const createCourse = async (req, res) => {
  *         name: limit
  *         schema: { type: integer, default: 10 }
  *         description: Number of items per page
+ *       - in: query
+ *         name: sort
+ *         schema: { type: string, default: 'ASC' }
+ *         description: Sort by ASC [A-Z] or DESC [Z-A]
+ *       - in: query
+ *         name: column
+ *         schema: { type: string, default: 'createdAt' }
+ *         description: Sort by column
  *     responses:
  *       200:
  *         description: List of courses
  */
 export const getAllCourses = async (req, res) => {
-
-    // take certain amount at a time
     const limit = parseInt(req.query.limit) || 10;
-    // which page to take
     const page = parseInt(req.query.page) || 1;
-
+    const joinWith = req.query.include || '';
+    const sortType = req.query.sort && req.query.sort.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
+    const sortColumn = req.query.column || 'createdAt';
     const total = await db.Course.count();
 
+    // Support multiple includes, e.g. include=Teacher,Student
+    const includeOption = [];
+    if (joinWith.includes('Teacher')) includeOption.push(db.Teacher);
+    if (joinWith.includes('Student')) includeOption.push(db.Student);
+
+    const order = [[sortColumn, sortType]];
+
     try {
-        const courses = await db.Course.findAll(
-            {
-                // include: [db.Student, db.Teacher],
-                limit: limit, offset: (page - 1) * limit
-            }
-        );
+        const courses = await db.Course.findAll({
+            order,
+            include: includeOption,
+            limit,
+            offset: (page - 1) * limit
+        });
         res.json({
             meta: {
                 totalItems: total,
-                page: page,
+                page,
                 totalPages: Math.ceil(total / limit),
             },
             data: courses,

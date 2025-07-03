@@ -107,6 +107,15 @@ It includes all CRUD endpoints for:
 - `/teachers`
 - `/courses`
 
+### Query Parameters Supported
+
+All list endpoints (`GET /students`, `GET /teachers`, `GET /courses`) support:
+
+- `limit` (number): Number of records per page
+- `page` (number): Page number
+- `sort` (asc|desc): Sort by created time
+- `populate` (string): Populate related models (e.g. `teacherId`, `courseId`, `studentId`)
+
 ---
 
 ## ⚙️ Scripts
