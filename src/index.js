@@ -1,22 +1,31 @@
 import express from 'express';
 import dotenv from 'dotenv';
+import cors from 'cors';
+
+import { serveSwagger, setupSwagger } from './config/swagger.js'; // ✅ Swagger
+import authRoutes from './routes/auth.js';
 import studentRoutes from './routes/student.routes.js';
-import courseRoutes from './routes/course.routes.js';
 import teacherRoutes from './routes/teacher.routes.js';
-import { serveSwagger, setupSwagger } from './config/swagger.js';
+import courseRoutes from './routes/course.routes.js';
 
-dotenv.config();
 const app = express();
-const PORT = process.env.PORT || 3000;
+dotenv.config();
 
+app.use(cors());
 app.use(express.json());
 
+// ✅ Swagger docs route
 app.use('/docs', serveSwagger, setupSwagger);
 
+// ✅ Register routes
+app.use('/auth', authRoutes);
 app.use('/students', studentRoutes);
-app.use('/courses', courseRoutes);
 app.use('/teachers', teacherRoutes);
+app.use('/courses', courseRoutes);
 
-app.get('/', (req, res) => res.send('Welcome to School API!'));
-
-app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));
+// ✅ Start server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`✅ Server is running on http://localhost:${PORT}`);
+  console.log(`📚 Swagger Docs: http://localhost:${PORT}/docs`);
+});
